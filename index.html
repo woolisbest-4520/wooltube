@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>YouTube動画検索・再生</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input[type="text"] { width: 300px; padding: 8px; }
+    button { padding: 8px 12px; }
+    #results img { cursor: pointer; margin: 10px; border: 2px solid transparent; }
+    #results img:hover { border-color: #f00; }
+    #player { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>YouTube動画検索</h1>
+  <input type="text" id="searchQuery" placeholder="動画を検索">
+  <button onclick="searchVideos()">検索</button>
+
+  <div id="results"></div>
+  <div id="player"></div>
+
+  <script>
+    const apiKey = "AIzaSyBQ-40ld7erVfx7s6iKBYl-GjDqJVYBwrc"; // ← 自分のAPIキーに差し替え
+
+    function searchVideos() {
+      const query = document.getElementById("searchQuery").value;
+      const results = document.getElementById("results");
+      const player = document.getElementById("player");
+      results.innerHTML = "";
+      player.innerHTML = "";
+
+      fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&key=${apiKey}&maxResults=6`)
+        .then(response => response.json())
+        .then(data => {
+          data.items.forEach(item => {
+            const videoId = item.id.videoId;
+            const thumbnailUrl = item.snippet.thumbnails.medium.url;
+            const img = document.createElement("img");
+            img.src = thumbnailUrl;
+            img.alt = item.snippet.title;
+            img.onclick = () => {
+              player.innerHTML = `
+                <iframe width="560" height="315"
+                  src="https://www.youtube.com/embed/${videoId}?autoplay=1"
+                  frameborder="0"
+                  allow="autoplay; encrypted-media"
+                  allowfullscreen>
+                </iframe>
+              `;
+              window.scrollTo({ top: player.offsetTop, behavior: "smooth" });
+            };
+            results.appendChild(img);
+          });
+        })
+        .catch(error => {
+          results.innerHTML = "エラーが発生しました。";
+          console.error(error);
+        });
+    }
+  </script>
+</body>
+</html>
